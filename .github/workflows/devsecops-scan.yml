@@ -1,0 +1,60 @@
+name: DevSecOps-Shift-Left-Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: DevSecOps Security Scanning
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ===== IaC Security Scan with Checkov =====
+      - name: Run Checkov IaC Security Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: false  # 취약점 발견 시 실패 처리 (실습용)
+
+      # ===== Upload Checkov Results to GitHub Security Tab =====
+      - name: Upload Checkov SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()  # 실패해도 결과는 업로드
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov-iac-scan
+
+      # ===== CodeQL Analysis (Application Code Security) =====
+      # Python/JavaScript 등 애플리케이션 코드가 있다면 활성화
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v3
+      #   with:
+      #     languages: python
+      # 
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v3
+
+      # ===== Summary Report =====
+      - name: Security Scan Summary
+        if: always()
+        run: |
+          echo "========================================"
+          echo "  DevSecOps Security Scan Completed"
+          echo "========================================"
+          echo "✓ Checkov IaC Scan: Completed"
+          echo "📊 Results uploaded to Security tab"
+          echo "========================================"
