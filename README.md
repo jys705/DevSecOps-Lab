@@ -11,11 +11,24 @@
 - **통합 지점**: GitHub Security 탭을 통한 통합 보안 대시보드 (Single Pane of Glass)
 
 ### 보안 검사 항목
+
+#### 🔧 Infrastructure (Terraform) - Checkov 스캔
 본 프로젝트의 `main.tf`는 **의도적으로 취약하게 작성**되어 다음 보안 이슈를 포함합니다:
 - ❌ S3 버킷 암호화 미설정
 - ❌ S3 버킷 버전 관리 비활성화
 - ❌ S3 퍼블릭 액세스 차단 미설정
 - ❌ Security Group SSH(22번) 포트 전체 공개 (0.0.0.0/0)
+
+#### 💻 Application (Python) - CodeQL 스캔
+본 프로젝트의 `app.py`는 **의도적으로 취약하게 작성**되어 다음 보안 이슈를 포함합니다:
+- ❌ 하드코딩된 비밀번호 및 API 키
+- ❌ SQL Injection 취약점
+- ❌ Command Injection 취약점
+- ❌ Path Traversal 취약점
+- ❌ Server-Side Template Injection (SSTI)
+- ❌ 취약한 암호화 알고리즘 (MD5)
+- ❌ Insecure Deserialization
+- ❌ Debug 모드 활성화
 
 ### 워크플로우 실행
 모든 push 및 pull request 시 자동으로 보안 스캔이 실행됩니다.

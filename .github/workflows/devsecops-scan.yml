@@ -39,14 +39,15 @@ jobs:
           category: checkov-iac-scan
 
       # ===== CodeQL Analysis (Application Code Security) =====
-      # Python/JavaScript 등 애플리케이션 코드가 있다면 활성화
-      # - name: Initialize CodeQL
-      #   uses: github/codeql-action/init@v3
-      #   with:
-      #     languages: python
-      # 
-      # - name: Perform CodeQL Analysis
-      #   uses: github/codeql-action/analyze@v3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql-python
 
       # ===== Summary Report =====
       - name: Security Scan Summary
@@ -56,5 +57,6 @@ jobs:
           echo "  DevSecOps Security Scan Completed"
           echo "========================================"
           echo "✓ Checkov IaC Scan: Completed"
+          echo "✓ CodeQL SAST Scan: Completed"
           echo "📊 Results uploaded to Security tab"
           echo "========================================"
