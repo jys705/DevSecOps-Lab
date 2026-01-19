@@ -12,34 +12,46 @@ permissions:
   actions: read
 
 jobs:
-  security-scan:
+  # ===================================================================
+  # Job 1: Infrastructure Security Scan (Checkov)
+  # 취약점 발견 시 이 Job은 실패하지만, 결과는 Security 탭에 업로드됨
+  # ===================================================================
+  iac-security:
     runs-on: ubuntu-latest
-    name: DevSecOps Security Scanning
+    name: Infrastructure Security (Checkov)
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ===== IaC Security Scan with Checkov =====
       - name: Run Checkov IaC Security Scan
         uses: bridgecrewio/checkov-action@master
-        continue-on-error: true  # 실패해도 다음 단계 계속 실행
         with:
           directory: .
           framework: terraform
           output_format: sarif
           output_file_path: checkov-results.sarif
-          soft_fail: true  # 취약점 발견해도 워크플로우는 계속 진행
+          soft_fail: false  # 취약점 발견 시 이 Job 실패 처리
 
-      # ===== Upload Checkov Results to GitHub Security Tab =====
-      - name: Upload Checkov SARIF to GitHub Security
+      - name: Upload Checkov Results to Security Tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()  # 실패해도 결과는 업로드
+        if: always()  # Job 실패해도 결과는 반드시 업로드
         with:
           sarif_file: checkov-results.sarif
           category: checkov-iac-scan
 
-      # ===== CodeQL Analysis (Application Code Security) =====
+  # ===================================================================
+  # Job 2: Application Security Scan (CodeQL)
+  # Job 1과 독립적으로 병렬 실행됨
+  # ===================================================================
+  app-security:
+    runs-on: ubuntu-latest
+    name: Application Security (CodeQL)
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -50,9 +62,18 @@ jobs:
         with:
           category: codeql-python
 
-      # ===== Summary Report =====
-      - name: Security Scan Summary
-        if: always()
+  # ===================================================================
+  # Job 3: Security Summary Report
+  # 모든 스캔이 완료된 후 실행 (성공/실패 관계없이)
+  # ===================================================================
+  security-summary:
+    runs-on: ubuntu-latest
+    name: Security Scan Summary
+    needs: [iac-security, app-security]
+    if: always()  # 이전 Job들이 실패해도 실행
+    
+    steps:
+      - name: Report Summary
         run: |
           echo "========================================"
           echo "  DevSecOps Security Scan Completed"
@@ -60,4 +81,6 @@ jobs:
           echo "✓ Checkov IaC Scan: Completed"
           echo "✓ CodeQL SAST Scan: Completed"
           echo "📊 Results uploaded to Security tab"
+          echo ""
+          echo "⚠️  Check Security tab for vulnerabilities"
           echo "========================================"
