@@ -35,7 +35,7 @@ with Diagram(
     # ====== 1. Development (Shift-Left Security) ======
     with Cluster("Development\nShift-Left Security"):
         github = Github("GitHub")
-        checkov = Custom("Checkov\nIaC Scanning", "./architecture/checkov.png")
+        checkov = Custom("Checkov\nIaC Scanning", "./checkov.png")
         
         github >> Edge(color="darkblue", style="bold") >> checkov
     
@@ -49,7 +49,7 @@ with Diagram(
         route53 >> shield >> cloudfront >> waf
     
     # ====== 3. Authentication Layer (Zero Trust) ======
-    auth0 = Custom("Auth0\n(OIDC/Auth0)", "./architecture/auth0.png")
+    auth0 = Custom("Auth0\n(OIDC/Auth0)", "./auth0.png")
     
     # ====== 4. VPC & Compute ======
     with Cluster("VPC"):
@@ -65,7 +65,7 @@ with Diagram(
     with Cluster("Security Governance\nCentralized Monitoring"):
         guardduty = Guardduty("GuardDuty\nThreat Detection")
         inspector = Inspector("Inspector\nVuln Scanning")
-        prowler = Custom("Prowler\nAWS Auditing", "./architecture/prowler.png")
+        prowler = Custom("Prowler\nAWS Auditing", "./prowler.png")
         security_hub = SecurityHub("Security Hub\nCentralized Monitoring")
         
         guardduty >> Edge(color="firebrick") >> security_hub
